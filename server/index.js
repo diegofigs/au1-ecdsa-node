@@ -4,7 +4,8 @@ const { toHex, utf8ToBytes } = require("ethereum-cryptography/utils");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const port = 3042;
+const port = process.env.PORT || 3042;
+const router = express.Router();
 
 app.use(cors());
 app.use(express.json());
@@ -28,13 +29,13 @@ const balances = {
   "0xb06431488a11b3e69109b6f4b68777e2adef1b24": 75,
 };
 
-app.get("/balance/:address", (req, res) => {
+router.get("/balance/:address", (req, res) => {
   const { address } = req.params;
   const balance = balances[address] || 0;
   res.send({ balance });
 });
 
-app.post("/send", async (req, res) => {
+router.post("/send", async (req, res) => {
   const { recipient, amount, signature, recoveryBit } = req.body;
 
   const publicKey = await recoverKey("ecdsa-node", signature, recoveryBit);
@@ -51,6 +52,8 @@ app.post("/send", async (req, res) => {
   }
 });
 
+app.use('/api', router);
+
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
 });
@@ -60,3 +63,5 @@ function setInitialBalance(address) {
     balances[address] = 0;
   }
 }
+
+module.exports = app;
