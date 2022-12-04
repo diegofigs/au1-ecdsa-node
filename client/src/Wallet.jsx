@@ -5,15 +5,18 @@ function Wallet({
   setAddress,
   balance,
   setBalance,
+  nonce,
+  setNonce,
 }) {
   async function onChange(evt) {
     const address = evt.target.value;
     setAddress(address);
     if (address) {
       const {
-        data: { balance },
+        data: { balance, nonce },
       } = await server.get(`balance/${address}`);
       setBalance(balance);
+      setNonce(nonce);
     } else {
       setBalance(0);
     }
@@ -34,6 +37,10 @@ function Wallet({
       <label>
         Address:
         <span>{address.slice(0, 6)}...{address.slice(-4)}</span>
+      </label>
+      <label>
+        Nonce:
+        <span>{nonce}</span>
       </label>
       <div className="balance">Balance: {balance}</div>
     </div>

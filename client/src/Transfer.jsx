@@ -3,7 +3,7 @@ import { useState } from "react";
 import server from "./server";
 import { hashMessage } from "./utils";
 
-function Transfer({ address, setBalance }) {
+function Transfer({ address, setBalance, nonce, setNonce }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [signature, setSignature] = useState("");
@@ -15,12 +15,18 @@ function Transfer({ address, setBalance }) {
     evt.preventDefault();
 
     const message = toHex(
-      hashMessage(JSON.stringify({ recipient, amount: parseInt(sendAmount) }))
+      hashMessage(
+        JSON.stringify({
+          recipient,
+          amount: parseInt(sendAmount),
+          nonce: parseInt(nonce),
+        })
+      )
     );
 
     try {
       const {
-        data: { balance },
+        data: { balance, nonce },
       } = await server.post(`send`, {
         sender: address,
         signature,
@@ -30,6 +36,7 @@ function Transfer({ address, setBalance }) {
         recipient,
       });
       setBalance(balance);
+      setNonce(nonce);
     } catch (ex) {
       alert(ex.response.data.message);
     }
@@ -62,7 +69,11 @@ function Transfer({ address, setBalance }) {
         <span>
           {toHex(
             hashMessage(
-              JSON.stringify({ recipient, amount: parseInt(sendAmount) })
+              JSON.stringify({
+                recipient,
+                amount: parseInt(sendAmount),
+                nonce: parseInt(nonce),
+              })
             )
           )}
         </span>
