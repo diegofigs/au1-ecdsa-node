@@ -1,15 +1,8 @@
 const secp = require("ethereum-cryptography/secp256k1");
-const { keccak256 } = require("ethereum-cryptography/keccak");
-const { utf8ToBytes, toHex } = require("ethereum-cryptography/utils");
-
-function hashMessage(message) {
-    const bytes = utf8ToBytes(message);
-    return keccak256(bytes);
-}
+const { toHex } = require("ethereum-cryptography/utils");
 
 async function signMessage(msg, privateKey) {
-    const hash = hashMessage(msg);
-    const signature = await secp.sign(hash, privateKey, { recovered: true });
+    const signature = await secp.sign(msg, privateKey, { recovered: true });
     return signature;
 }
 

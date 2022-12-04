@@ -1,22 +1,31 @@
+import { toHex } from "ethereum-cryptography/utils";
 import { useState } from "react";
 import server from "./server";
+import { hashMessage } from "./utils";
 
-function Transfer({ address, signature, recoveryBit, setBalance }) {
+function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [signature, setSignature] = useState("");
+  const [recoveryBit, setRecoveryBit] = useState(0);
 
   const setValue = (setter) => (evt) => setter(evt.target.value);
 
   async function transfer(evt) {
     evt.preventDefault();
 
+    const message = toHex(
+      hashMessage(JSON.stringify({ recipient, amount: parseInt(sendAmount) }))
+    );
+
     try {
       const {
         data: { balance },
       } = await server.post(`send`, {
         sender: address,
-        signature, 
+        signature,
         recoveryBit,
+        message,
         amount: parseInt(sendAmount),
         recipient,
       });
@@ -48,6 +57,34 @@ function Transfer({ address, signature, recoveryBit, setBalance }) {
         ></input>
       </label>
 
+      <label>
+        Message Hash
+        <span>
+          {toHex(
+            hashMessage(
+              JSON.stringify({ recipient, amount: parseInt(sendAmount) })
+            )
+          )}
+        </span>
+      </label>
+
+      <label>
+        Wallet Signature
+        <input
+          placeholder="Type signature"
+          value={signature}
+          onChange={setValue(setSignature)}
+        ></input>
+      </label>
+      <label>
+        Recovery Bit
+        <input
+          placeholder="Type recovery bit"
+          type="number"
+          value={recoveryBit}
+          onChange={setValue(setRecoveryBit)}
+        ></input>
+      </label>
       <input type="submit" className="button" value="Transfer" />
     </form>
   );

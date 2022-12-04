@@ -1,21 +1,13 @@
 import server from "./server";
-import { getAddress, recoverKey } from './utils';
 
 function Wallet({
   address,
   setAddress,
   balance,
   setBalance,
-  signature,
-  setSignature,
-  recoveryBit,
-  setRecoveryBit,
 }) {
   async function onChange(evt) {
-    const sig = evt.target.value;
-    setSignature(sig);
-    const publicKey = await recoverKey("ecdsa-node", sig, recoveryBit);
-    const address = getAddress(publicKey);
+    const address = evt.target.value;
     setAddress(address);
     if (address) {
       const {
@@ -32,20 +24,11 @@ function Wallet({
       <h1>Your Wallet</h1>
 
       <label>
-        Wallet Signature
+        Wallet Address
         <input
-          placeholder="Type signature"
-          value={signature}
+          placeholder="Type address starting with 0x"
+          value={address}
           onChange={onChange}
-        ></input>
-      </label>
-      <label>
-        Recovery Bit
-        <input
-          placeholder="Type recovery bit"
-          type="number"
-          value={recoveryBit}
-          onChange={(e) => setRecoveryBit(Number(e.target.value))}
         ></input>
       </label>
       <label>

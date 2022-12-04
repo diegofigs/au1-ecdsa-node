@@ -1,6 +1,6 @@
 const secp = require("ethereum-cryptography/secp256k1");
 const { keccak256 } = require("ethereum-cryptography/keccak");
-const { toHex, utf8ToBytes } = require("ethereum-cryptography/utils");
+const { toHex } = require("ethereum-cryptography/utils");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -10,13 +10,8 @@ const router = express.Router();
 app.use(cors());
 app.use(express.json());
 
-function hashMessage(message) {
-  const bytes = utf8ToBytes(message);
-  return keccak256(bytes);
-}
-
 async function recoverKey(message, signature, recoveryBit) {
-  return secp.recoverPublicKey(hashMessage(message), signature, recoveryBit);
+  return secp.recoverPublicKey(message, signature, recoveryBit);
 }
 
 function getAddress(publicKey) {
@@ -36,9 +31,13 @@ router.get("/balance/:address", (req, res) => {
 });
 
 router.post("/send", async (req, res) => {
-  const { recipient, amount, signature, recoveryBit } = req.body;
+  const { recipient, amount, message, signature, recoveryBit } = req.body;
 
-  const publicKey = await recoverKey("ecdsa-node", signature, recoveryBit);
+  const publicKey = await recoverKey(message, signature, parseInt(recoveryBit));
+  const isValid = secp.verify(signature, message, publicKey);
+  if (!isValid) {
+    res.status(401).send({ message: "Invalid signature" });
+  }
   const sender = getAddress(publicKey);
   setInitialBalance(sender);
   setInitialBalance(recipient);
@@ -52,7 +51,7 @@ router.post("/send", async (req, res) => {
   }
 });
 
-app.use('/api', router);
+app.use("/api", router);
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
